@@ -3,7 +3,10 @@ import { http, HttpResponse } from 'msw';
 //let baseUrl = 'https://json-api.rockandrollwithemberjs.com';
 let baseUrl = 'http://localhost:4200';
 
-let bands = [
+const RSW_BANDS = 'RSW_BANDS';
+const RSW_SONGS = 'RSW_SONGS';
+
+let defaultBands = [
   {
     id: 'foo-fighters',
     type: 'bands',
@@ -121,7 +124,7 @@ let bands = [
   },
 ];
 
-let songs = [
+let defaultSongs = [
   {
     id: '9270',
     type: 'songs',
@@ -335,12 +338,12 @@ let songs = [
 export const handlers = [
   // GET /bands
   http.get('/bands', () => {
-    return HttpResponse.json({ data: bands });
+    return HttpResponse.json({ data: getBands() });
   }),
 
   // GET /songs
   http.get('/songs', () => {
-    return HttpResponse.json({ data: songs });
+    return HttpResponse.json({ data: getSongs() });
   }),
 
   // POST /bands
@@ -369,7 +372,9 @@ export const handlers = [
         },
       },
     };
+    const bands = getBands();
     bands.push(newBand);
+    saveBands(bands);
     return HttpResponse.json({ data: newBand });
   }),
 
@@ -378,29 +383,36 @@ export const handlers = [
     const body = await request.json();
     const { title, bandId } = {
       title: body.data.attributes.title,
-      band: body.data.relationships.band.id,
+      bandId: body.data.relationships.band.data.id,
     };
+
+    const songs = getSongs();
     const newSong = {
       id: String(songs.length + 1),
       type: 'songs',
       attributes: {
         title,
         bandId,
+        rating: 0,
       },
       links: {
         self: `${baseUrl}/songs/${songs.length + 1}`,
       },
     };
     songs.push(newSong);
+    saveSongs(songs);
     return HttpResponse.json({ data: newSong });
   }),
 
   // PATCH /bands/:id
-  http.patch('/bands/:id', (req) => {
+  http.patch('/bands/:id', async (req) => {
+    const body = await req.request.json();
     const { id } = req.params;
+    const bands = getBands();
     const band = bands.find((b) => b.id === id);
     if (band) {
-      //Object.assign(band.attributes, req.body.attributes);
+      Object.assign(band.attributes, body.data.attributes);
+      saveBands(bands);
       return HttpResponse.json({ data: band });
     }
     return new HttpResponse('Not found', {
@@ -412,11 +424,14 @@ export const handlers = [
   }),
 
   // PATCH /songs/:id
-  http.patch('/songs/:id', (req) => {
+  http.patch('/songs/:id', async (req) => {
+    const body = await req.request.json();
     const { id } = req.params;
+    const songs = getSongs();
     const song = songs.find((s) => s.id === id);
     if (song) {
-      //Object.assign(song.attributes, req.body.attributes);
+      Object.assign(song.attributes, body.data.attributes);
+      saveSongs(songs);
       return HttpResponse.json({ data: song });
     }
     return new HttpResponse('Not found', {
@@ -430,6 +445,7 @@ export const handlers = [
   // GET /bands/:id/songs
   http.get('/bands/:id/songs', (req) => {
     const { id } = req.params;
+    const songs = getSongs();
     const bandSongs = songs.filter((song) => song.attributes.bandId === id);
     return HttpResponse.json({ data: bandSongs });
   }),
@@ -437,14 +453,45 @@ export const handlers = [
   // DELETE /bands/:id
   http.delete('/bands/:id', (req) => {
     const { id } = req.params;
-    bands = bands.filter((b) => b.id !== id);
+    const bands = getBands();
+    saveBands(bands.filter((b) => b.id !== id));
     return new HttpResponse(null, { status: 204 });
   }),
 
   // DELETE /songs/:id
   http.delete('/songs/:id', (req) => {
     const { id } = req.params;
-    songs = songs.filter((s) => s.id !== id);
+    const songs = getSongs();
+    saveSongs(songs.filter((s) => s.id !== id));
     return new HttpResponse(null, { status: 204 });
   }),
 ];
+
+function getBands() {
+  return get(RSW_BANDS, defaultBands);
+}
+
+function getSongs() {
+  return get(RSW_SONGS, defaultSongs);
+}
+
+function get(key, defaultItems) {
+  let jsonArray = localStorage.getItem(key);
+  if (jsonArray === null) {
+    localStorage.setItem(key, JSON.stringify(defaultItems));
+    return defaultItems;
+  }
+  return JSON.parse(jsonArray);
+}
+
+function saveBands(data) {
+  return save(RSW_BANDS, data);
+}
+
+function saveSongs(data) {
+  return save(RSW_SONGS, data);
+}
+
+function save(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
