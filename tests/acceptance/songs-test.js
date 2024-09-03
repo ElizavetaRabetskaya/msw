@@ -26,26 +26,26 @@ module('Acceptance | songs', function (hooks) {
     assert
       .dom('[data-test-rr=song-list-item]:first-child')
       .hasText(
-        'Elephants',
+        'Elephants Remove',
         'The first song is the one that comes first in the alphabet',
       );
     assert
       .dom('[data-test-rr=song-list-item]:last-child')
       .hasText(
-        'Spinning In Daffodils',
+        'Spinning In Daffodils Remove',
         'The last song is the one that comes last in the alphabet',
       );
     await click('[data-test-rr=sort-by-title-desc]');
     assert
       .dom('[data-test-rr=song-list-item]:first-child')
       .hasText(
-        'Spinning In Daffodils',
+        'Spinning In Daffodils Remove',
         'The first song is the one that comes last in the alphabet',
       );
     assert
       .dom('[data-test-rr=song-list-item]:last-child')
       .hasText(
-        'Elephants',
+        'Elephants Remove',
         'The last song is the one that comes first in the alphabet',
       );
     assert.ok(
@@ -55,10 +55,16 @@ module('Acceptance | songs', function (hooks) {
     await click('[data-test-rr=sort-by-rating-asc]');
     assert
       .dom('[data-test-rr=song-list-item]:first-child')
-      .hasText('Mind Eraser, No Chaser', 'The first song is the lowest rated');
+      .hasText(
+        'Mind Eraser, No Chaser Remove',
+        'The first song is the lowest rated',
+      );
     assert
       .dom('[data-test-rr=song-list-item]:last-child')
-      .hasText('Spinning In Daffodils', 'The last song is the highest rated');
+      .hasText(
+        'Spinning In Daffodils Remove',
+        'The last song is the highest rated',
+      );
     assert.ok(
       currentURL().includes('s=rating'),
       'The sort query param appears in the URL with the correct value',
@@ -66,10 +72,16 @@ module('Acceptance | songs', function (hooks) {
     await click('[data-test-rr=sort-by-rating-desc]');
     assert
       .dom('[data-test-rr=song-list-item]:first-child')
-      .hasText('Spinning In Daffodils', 'The first song is the highest rated');
+      .hasText(
+        'Spinning In Daffodils Remove',
+        'The first song is the highest rated',
+      );
     assert
       .dom('[data-test-rr=song-list-item]:last-child')
-      .hasText('Mind Eraser, No Chaser', 'The last song is the lowest rated');
+      .hasText(
+        'Mind Eraser, No Chaser Remove',
+        'The last song is the lowest rated',
+      );
     assert.ok(
       currentURL().includes('s=-rating'),
       'The sort query param appears in the URL with the correct value',
@@ -105,13 +117,13 @@ module('Acceptance | songs', function (hooks) {
     assert
       .dom('[data-test-rr=song-list-item]:first-child')
       .hasText(
-        'No One Loves Me & Neither Do I',
+        'No One Loves Me & Neither Do I Remove',
         'A matching song that comes later in the alphabet appears on top',
       );
     assert
       .dom('[data-test-rr=song-list-item]:last-child')
       .hasText(
-        'Mind Eraser, No Chaser',
+        'Mind Eraser, No Chaser Remove',
         'A matching song that comes sooner in the alphabet appears at the bottom',
       );
   });
